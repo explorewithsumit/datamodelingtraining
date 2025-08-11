@@ -1,0 +1,169 @@
+-- Dim_Customer
+CREATE TABLE Dim_Customer (
+    customer_id INT PRIMARY KEY,
+    loyalty_program_id INT,
+    address_id INT,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email VARCHAR(100),
+    phone_number VARCHAR(20),
+    date_of_birth DATE,
+    gender VARCHAR(10),
+    registration_date DATE,
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT
+);
+
+-- Dim_Product
+CREATE TABLE Dim_Product (
+    product_id INT PRIMARY KEY,
+    product_category_id INT,
+    product_sku VARCHAR(50),
+    product_upc VARCHAR(50),
+    product_name VARCHAR(100),
+    brand VARCHAR(50),
+    product_description TEXT,
+    unit_price DECIMAL(10,2),
+    cost_price DECIMAL(10,2),
+    created_timestamp TIMESTAMP,
+    modified_timestamp TIMESTAMP,
+    source_id INT,
+    FOREIGN KEY (product_category_id) REFERENCES Dim_Product_Category(product_category_id)
+);
+
+-- Dim_Store
+CREATE TABLE Dim_Store (
+    store_id INT PRIMARY KEY,
+    store_name VARCHAR(100),
+    store_type VARCHAR(50),
+    address_id INT,
+    region VARCHAR(50),
+    opened_date DATE,
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT
+);
+
+-- Dim_Promotion
+CREATE TABLE Dim_Promotion (
+    promotion_id INT PRIMARY KEY,
+    promotion_name VARCHAR(100),
+    applicable_category_id INT,
+    start_date DATE,
+    end_date DATE,
+    discount_type VARCHAR(50),
+    discount_value DECIMAL(10,2),
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT
+);
+
+-- Dim_Product_Category
+CREATE TABLE Dim_Product_Category (
+    product_category_id INT PRIMARY KEY,
+    parent_product_category_id INT,
+    product_category_name VARCHAR(100),
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT
+);
+
+-- Dim_Supplier
+CREATE TABLE Dim_Supplier (
+    supplier_id INT PRIMARY KEY,
+    supplier_name VARCHAR(100),
+    contact_name VARCHAR(100),
+    contact_email VARCHAR(100),
+    contact_phone VARCHAR(20),
+    address_id INT,
+    lead_time_days INT,
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT
+);
+
+-- Dim_Warehouse
+CREATE TABLE Dim_Warehouse (
+    warehouse_id INT PRIMARY KEY,
+    warehouse_name VARCHAR(100),
+    address_id INT,
+    capacity INT,
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT
+);
+
+-- Dim_Address
+CREATE TABLE Dim_Address (
+    address_id INT PRIMARY KEY,
+    street VARCHAR(150),
+    city VARCHAR(50),
+    state VARCHAR(50),
+    postal_code VARCHAR(20),
+    country VARCHAR(50),
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT
+);
+
+-- Fact_Order
+CREATE TABLE Fact_Order (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    store_id INT,
+    order_date DATE,
+    order_status VARCHAR(50),
+    total_items INT,
+    total_amount DECIMAL(15,2),
+    discount_amount DECIMAL(15,2),
+    payment_method VARCHAR(50),
+    shipping_address_id INT,
+    billing_address_id INT,
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT,
+    FOREIGN KEY (customer_id) REFERENCES Dim_Customer(customer_id),
+    FOREIGN KEY (store_id) REFERENCES Dim_Store(store_id),
+    FOREIGN KEY (shipping_address_id) REFERENCES Dim_Address(address_id),
+    FOREIGN KEY (billing_address_id) REFERENCES Dim_Address(address_id)
+);
+
+-- Fact_Sales
+CREATE TABLE Fact_Sales (
+    sales_id INT PRIMARY KEY,
+    product_id INT,
+    customer_id INT,
+    order_id INT,
+    order_item_id INT,
+    store_id INT,
+    promotion_id INT,
+    quantity INT,
+    unit_price DECIMAL(15,2),
+    discount_amount DECIMAL(15,2),
+    order_item_total DECIMAL(15,2),
+    order_date DATE,
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT,
+    FOREIGN KEY (product_id) REFERENCES Dim_Product(product_id),
+    FOREIGN KEY (customer_id) REFERENCES Dim_Customer(customer_id),
+    FOREIGN KEY (order_id) REFERENCES Fact_Order(order_id),
+    FOREIGN KEY (store_id) REFERENCES Dim_Store(store_id),
+    FOREIGN KEY (promotion_id) REFERENCES Dim_Promotion(promotion_id)
+);
+
+-- Fact_Inventory
+CREATE TABLE Fact_Inventory (
+    inventory_id INT PRIMARY KEY,
+    warehouse_id INT,
+    product_id INT,
+    inventory_date DATE,
+    quantity_on_hand INT,
+    quantity_reserved INT,
+    created_timestamp TIMESTAMP,
+    updated_timestamp TIMESTAMP,
+    source_id INT,
+    FOREIGN KEY (warehouse_id) REFERENCES Dim_Warehouse(warehouse_id),
+    FOREIGN KEY (product_id) REFERENCES Dim_Product(product_id)
+);
